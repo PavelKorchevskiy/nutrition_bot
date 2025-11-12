@@ -37,4 +37,9 @@ public class UserServiceImpl implements UserService{
     public void setUserState(long chatId, RegistrationState state) {
         userStates.put(chatId, state);
     }
+
+    @Override
+    public boolean exist(long chatId) {
+        return users.get(chatId) != null;
+    }
 }

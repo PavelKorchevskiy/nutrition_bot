@@ -10,4 +10,5 @@ public interface UserService {
     void saveUser(long chatId, User user);
     RegistrationState getUserState(long chatId);
     void setUserState(long chatId, RegistrationState state);
+    boolean exist(long chatId);
 }
