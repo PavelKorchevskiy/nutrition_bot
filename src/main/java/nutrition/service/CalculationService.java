@@ -95,8 +95,8 @@ public class CalculationService {
 
         List<KeyboardRow> rows = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
-        row.add(messageService.get("navigation.back_to_menu", locale));
-        row.add("/start");
+        row.add(messageService.get("menu.calculations", locale));
+        row.add(messageService.get("start", locale));
         rows.add(row);
 
         keyboard.setKeyboard(rows);
@@ -199,8 +199,7 @@ public class CalculationService {
         row3.add(messageService.get("param.activity.title", locale));
 
         KeyboardRow row4 = new KeyboardRow();
-        row4.add(messageService.get("navigation.back_to_menu", locale));
-        row4.add("/start");
+        row4.add(messageService.get("start", locale));
 
         rows.add(row1);
         rows.add(row2);

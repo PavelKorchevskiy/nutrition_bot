@@ -24,8 +24,11 @@ public class RegistrationService {
     private final CalculationService calculationService;
 
     public SendMessage handleMessage(long chatId, String text, Locale locale) {
-        if ("/start".equals(text)) {
+        if ("/start".equals(text) || messageService.get("start", locale).equals(text)) {
             return handleStart(chatId, locale);
+        }
+        if (messageService.get("menu.calculations", locale).equals(text)) {
+            return showCalculationMenu(chatId, locale);
         }
         RegistrationState userState = userService.getUserState(chatId);
         User user = userService.getOrCreateUser(chatId);
@@ -73,7 +76,7 @@ public class RegistrationService {
 
     private SendMessage handleStartMenu(long chatId, String text, Locale locale) {
         if (messageService.get("menu.enter_params", locale).equals(text)) {
-            return startParametrization(chatId, locale);
+            return askForSex(chatId, locale);
         }
         if (messageService.get("menu.calculations", locale).equals(text)) {
             return showCalculationMenu(chatId, locale);
@@ -81,12 +84,8 @@ public class RegistrationService {
         return new SendMessage(String.valueOf(chatId), messageService.get("error.unknown_command", locale));
     }
 
-    private SendMessage startParametrization(long chatId, Locale locale) {
-        userService.setUserState(chatId, RegistrationState.ENTERING_SEX);
-        return askForSex(chatId, locale);
-    }
-
     private SendMessage askForSex(long chatId, Locale locale) {
+        userService.setUserState(chatId, RegistrationState.ENTERING_SEX);
         String text = messageService.get("param.sex.question", locale);
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
 
@@ -100,7 +99,7 @@ public class RegistrationService {
 
         KeyboardRow navRow = new KeyboardRow();
         navRow.add(messageService.get("navigation.skip", locale));
-        navRow.add("/start");
+        navRow.add(messageService.get("start", locale));
 
         rows.add(sexRow);
         rows.add(navRow);
@@ -196,7 +195,7 @@ public class RegistrationService {
         KeyboardRow navRow = new KeyboardRow();
         navRow.add(messageService.get("navigation.skip", locale));
         navRow.add(messageService.get("navigation.back", locale));
-        navRow.add("/start");
+        navRow.add(messageService.get("start", locale));
         rows.add(navRow);
 
         keyboard.setKeyboard(rows);
@@ -264,7 +263,7 @@ public class RegistrationService {
         KeyboardRow navRow = new KeyboardRow();
         navRow.add(messageService.get("navigation.skip", locale));
         navRow.add(messageService.get("navigation.back", locale));
-        navRow.add("/start");
+        navRow.add(messageService.get("start", locale));
         rows.add(navRow);
 
         keyboard.setKeyboard(rows);
@@ -324,7 +323,7 @@ public class RegistrationService {
         KeyboardRow navRow = new KeyboardRow();
         navRow.add(messageService.get("navigation.skip", locale));
         navRow.add(messageService.get("navigation.back", locale));
-        navRow.add("/start");
+        navRow.add(messageService.get("start", locale));
 
         rows.add(row1);
         rows.add(row2);
@@ -399,7 +398,7 @@ public class RegistrationService {
 
         // Навигационный ряд
         KeyboardRow navRow = new KeyboardRow();
-        navRow.add("/start");
+        navRow.add(messageService.get("start", locale));
         rows.add(navRow);
 
         keyboard.setKeyboard(rows);
@@ -461,7 +460,7 @@ public class RegistrationService {
         KeyboardRow navRow = new KeyboardRow();
         navRow.add(messageService.get("navigation.skip", locale));
         navRow.add(messageService.get("navigation.back", locale));
-        navRow.add("/start");
+        navRow.add(messageService.get("start", locale));
 
         rows.add(navRow);
         keyboard.setKeyboard(rows);
