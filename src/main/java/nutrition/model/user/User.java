@@ -22,6 +22,6 @@ public record User(long chatId, int age, int height, int weight, Sex sex, Activi
     }
 
     public User withActivity(ActivityLevel activity) {
-        return new User(chatId, age, height, weight, sex, activityLevel);
+        return new User(chatId, age, height, weight, sex, activity);
     }
 }
