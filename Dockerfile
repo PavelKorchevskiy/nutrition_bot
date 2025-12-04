@@ -12,8 +12,9 @@ RUN apt-get update && \
     apt-get purge -y --auto-remove && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN mkdir -p /data
+
 WORKDIR /app
 COPY --from=build /build/target/*.jar app.jar
 
-# Явно указываем меньше памяти
-ENTRYPOINT ["java", "-Xmx256m", "-Xms128m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx256m", "-Xms128m", "-Ddata.path=/data", "-jar", "app.jar"]
