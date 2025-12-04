@@ -8,8 +8,10 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nutrition.model.user.RegistrationState;
 import nutrition.model.user.User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,15 +26,20 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class JsonUserStorageService implements UserService{
-    private static final String DATA_FILE = "bot-users.json";
-    private final Path dataFilePath;
+
+    @Value("${storage.data-path:./data}")
+    private String dataPath;
+
+    @Value("${storage.filename:bot-users.json}")
+    private String filename;
+
+    private Path dataFilePath;
     private final ObjectMapper objectMapper;
 
     private final Map<Long, User> users = new ConcurrentHashMap<>();
     private final Map<Long, RegistrationState> userStates = new ConcurrentHashMap<>();
 
     public JsonUserStorageService() {
-        this.dataFilePath = Paths.get(DATA_FILE);
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -56,12 +63,12 @@ public class JsonUserStorageService implements UserService{
                 }
 
                 log.info("Loaded {} users and {} states from {}",
-                        users.size(), userStates.size(), DATA_FILE);
+                        users.size(), userStates.size(), dataFilePath);
             } else {
-                log.info("Data file {} not found, starting with empty storage", DATA_FILE);
+                log.info("Data file {} not found, starting with empty storage", dataFilePath);
             }
         } catch (Exception e) {
-            log.error("Failed to load data from {}", DATA_FILE, e);
+            log.error("Failed to load data from {}", dataFilePath, e);
         }
     }
 
@@ -79,14 +86,23 @@ public class JsonUserStorageService implements UserService{
                     StandardOpenOption.TRUNCATE_EXISTING);
 
             log.info("Saved {} users and {} states to {}",
-                    users.size(), userStates.size(), DATA_FILE);
+                    users.size(), userStates.size(), dataFilePath);
         } catch (Exception e) {
-            log.error("Failed to save data to {}", DATA_FILE, e);
+            log.error("Failed to save data to {}", dataFilePath, e);
         }
     }
 
     @PostConstruct
     public void init() {
+        Path dir = Paths.get(dataPath);
+        try {
+            Files.createDirectories(dir);
+            this.dataFilePath = dir.resolve(filename);
+            log.info("Storage path: {}", dataFilePath.toAbsolutePath());
+        } catch (IOException e) {
+            log.error("Failed to initialize storage", e);
+            throw new RuntimeException("Storage initialization failed", e);
+        }
         loadData();
         startAutoSave();
     }
