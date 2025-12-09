@@ -47,7 +47,7 @@ public class RegistrationService {
     private SendMessage handleStart(long chatId, Locale locale) {
         userService.setUserState(chatId, RegistrationState.START);
         if (!userService.exist(chatId)) {
-            userService.saveUser(chatId, new User(chatId));
+            userService.saveUser(new User(chatId));
         }
         String welcomeText = messageService.get("welcome", locale);
         SendMessage message = new SendMessage(String.valueOf(chatId), welcomeText);
@@ -112,13 +112,13 @@ public class RegistrationService {
 
     private SendMessage handleSexInput(long chatId, String text, User user, Locale locale) {
         if (messageService.get("navigation.skip", locale).equals(text)) {
-            userService.saveUser(chatId, user);
+            userService.saveUser(user);
             return askForAge(chatId, locale);
         }
         if (messageService.get("param.sex.male", locale).equals(text)) {
-            userService.saveUser(chatId, user.withSex(Sex.MALE));
+            userService.saveUser(user.withSex(Sex.MALE));
         } else if (messageService.get("param.sex.female", locale).equals(text)) {
-            userService.saveUser(chatId, user.withSex(Sex.FEMALE));
+            userService.saveUser(user.withSex(Sex.FEMALE));
         } else {
             return new SendMessage(String.valueOf(chatId), messageService.get("error.invalid_sex", locale));
         }
@@ -138,7 +138,7 @@ public class RegistrationService {
 
     private SendMessage handleAgeInput(long chatId, String text, User user, Locale locale) {
         if (messageService.get("navigation.skip", locale).equals(text)) {
-            userService.saveUser(chatId, user);
+            userService.saveUser(user);
             return askForWeight(chatId, locale);
         }
 
@@ -155,7 +155,7 @@ public class RegistrationService {
                 return new SendMessage(String.valueOf(chatId), messageService.get("error.invalid_age_range.old", locale));
             }
 
-            userService.saveUser(chatId, user.withAge(age));
+            userService.saveUser(user.withAge(age));
             return askForWeight(chatId, locale);
 
         } catch (NumberFormatException e) {
@@ -206,7 +206,7 @@ public class RegistrationService {
 
     private SendMessage handleWeightInput(long chatId, String text, User user, Locale locale) {
         if (messageService.get("navigation.skip", locale).equals(text)) {
-            userService.saveUser(chatId, user);
+            userService.saveUser(user);
             return askForHeight(chatId, locale);
         }
 
@@ -224,7 +224,7 @@ public class RegistrationService {
                 return new SendMessage(String.valueOf(chatId), messageService.get("error.invalid_weight_range.high", locale));
             }
 
-            userService.saveUser(chatId, user.withWeight(weight));
+            userService.saveUser(user.withWeight(weight));
             return askForHeight(chatId, locale);
 
         } catch (NumberFormatException e) {
@@ -274,7 +274,7 @@ public class RegistrationService {
 
     private SendMessage handleHeightInput(long chatId, String text, User user, Locale locale) {
         if (messageService.get("navigation.skip", locale).equals(text)) {
-            userService.saveUser(chatId, user);
+            userService.saveUser(user);
             return askForActivity(chatId, locale);
         }
 
@@ -290,7 +290,7 @@ public class RegistrationService {
                 return new SendMessage(String.valueOf(chatId), messageService.get("error.invalid_height_range", locale));
             }
 
-            userService.saveUser(chatId, user.withHeight(height));
+            userService.saveUser(user.withHeight(height));
             return askForActivity(chatId, locale);
 
         } catch (NumberFormatException e) {
@@ -338,7 +338,7 @@ public class RegistrationService {
 
     private SendMessage handleActivityInput(long chatId, String text, User user, Locale locale) {
         if (messageService.get("navigation.skip", locale).equals(text)) {
-            userService.saveUser(chatId, user);
+            userService.saveUser(user);
             return showCalculationMenu(chatId, locale);
         }
 
@@ -348,7 +348,7 @@ public class RegistrationService {
 
         ActivityLevel activity = mapTextToActivity(text, locale);
         if (activity != null) {
-            userService.saveUser(chatId, user.withActivity(activity));
+            userService.saveUser(user.withActivity(activity));
             return showCalculationMenu(chatId, locale);
         } else {
             return new SendMessage(String.valueOf(chatId), messageService.get("error.invalid_activity", locale));

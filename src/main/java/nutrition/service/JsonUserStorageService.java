@@ -16,7 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -136,8 +138,8 @@ public class JsonUserStorageService implements UserService{
     }
 
     @Override
-    public void saveUser(long chatId, User user) {
-        users.put(chatId, user);
+    public void saveUser(User user) {
+        users.put(user.chatId(), user);
     }
 
     @Override
@@ -153,6 +155,16 @@ public class JsonUserStorageService implements UserService{
     @Override
     public boolean exist(long chatId) {
         return users.get(chatId) != null;
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return new ArrayList<>(users.values());
+    }
+
+    @Override
+    public User delete(Long chatId) {
+        return users.remove(chatId);
     }
 }
 
