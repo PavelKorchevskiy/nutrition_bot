@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static nutrition.model.user.ActivityLevel.*;
-
 @Component
 public class CalculationService {
 
@@ -51,6 +49,16 @@ public class CalculationService {
             return performCalculation(chatId, user, selectedOption, locale);
         }
 
+        String infoMessage = findInfoMessage(text, locale);
+        if (infoMessage != null) {
+            return SendMessage.builder()
+                    .chatId(user.chatId())
+                    .parseMode(ParseMode.MARKDOWN)
+                    .text(infoMessage)
+                    .replyMarkup(createBackKeyboardWithOptions(locale))
+                    .build();
+        }
+
         // Если опция не найдена
         return new SendMessage(String.valueOf(chatId), messageService.get("error.invalid_option", locale));
     }
@@ -66,68 +74,63 @@ public class CalculationService {
     }
 
     private SendMessage performCalculation(long chatId, User user, CalculationOption option, Locale locale) {
-        String result;
+        SendMessage message;
 
         try {
             switch (option) {
                 case WATER:
-                    result = calculateWaterIntake(user, locale);
+                    message = calculateWaterIntake(user, locale);
                     break;
                 case CALORIES:
-                    result = calculateCalories(user, locale);
+                    message = calculateCalories(user, locale);
                     break;
                 case MACROS:
-                    result = calculateMacronutrients(user, locale);
+                    message = calculateMacronutrients(user, locale);
                     break;
                 default:
-                    result = messageService.get("error.calculation_not_implemented", locale);
+                    message = new SendMessage(String.valueOf(chatId), messageService.get("error.calculation_not_implemented", locale));
             }
         } catch (Exception e) {
-            result = messageService.get("error.calculation_failed", locale);
+            message = new SendMessage(String.valueOf(chatId), messageService.get("error.calculation_failed", locale));
         }
-
-        SendMessage message = new SendMessage(String.valueOf(chatId), result);
-        message.setParseMode(ParseMode.MARKDOWN);
-
-        // Добавляем клавиатуру для возврата в меню
-        ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
-        keyboard.setResizeKeyboard(true);
-
-        List<KeyboardRow> rows = new ArrayList<>();
-        KeyboardRow row = new KeyboardRow();
-        row.add(messageService.get("menu.calculations", locale));
-        row.add(messageService.get("start", locale));
-        rows.add(row);
-
-        keyboard.setKeyboard(rows);
-        message.setReplyMarkup(keyboard);
 
         return message;
     }
 
-    private String calculateWaterIntake(User user, Locale locale) {
+    private SendMessage calculateWaterIntake(User user, Locale locale) {
         // Формула: вес * 0.03 (рекомендуемое количество воды в литрах)
         double waterIntake = user.weight() * 0.03;
         String formattedWater = String.format("%.2f", waterIntake);
-
-        return messageService.get("calculation.water.result", locale) +
+        String message = messageService.get("calculation.water.result", locale) +
                 "\n\n" + messageService.get("calculation.result.recommendation", locale) +
                 " *" + formattedWater + "* " + messageService.get("metric.liters", locale);
+        return SendMessage.builder()
+                .chatId(user.chatId())
+                .parseMode(ParseMode.MARKDOWN)
+                .text(message)
+                .replyMarkup(createBackKeyboardWithOptions(locale, "info.button.water"))
+                .build();
     }
 
-    private String calculateCalories(User user, Locale locale) {
+    private SendMessage calculateCalories(User user, Locale locale) {
         // Базовая формула Миффлина-Сан Жеора
         double bmr = calculateBMR(user);
         double calories = bmr * getActivityMultiplier(user.activityLevel());
 
         String formattedCalories = String.format("%.0f", calories);
 
-        return messageService.get("calculation.calories.result", locale) +
+        String message = messageService.get("calculation.calories.result", locale) +
                 "\n\n" + messageService.get("calculation.result.daily_needs", locale) +
                 " *" + formattedCalories + "* " + messageService.get("metric.kcal", locale);
+        return SendMessage.builder()
+                .chatId(user.chatId())
+                .parseMode(ParseMode.MARKDOWN)
+                .text(message)
+                .replyMarkup(createBackKeyboardWithOptions(locale, "info.button.calories"))
+                .build();
     }
 
-    private String calculateMacronutrients(User user, Locale locale) {
+    private SendMessage calculateMacronutrients(User user, Locale locale) {
         double bmr = calculateBMR(user);
         double calories = bmr * getActivityMultiplier(user.activityLevel());
 
@@ -141,11 +144,17 @@ public class CalculationService {
         double fatGrams = fatCalories / 9;
         double carbGrams = carbCalories / 4;
 
-        return messageService.get("calculation.macros.result", locale) +
+        String message = messageService.get("calculation.macros.result", locale) +
                 "\n\n" +
                 "🥩 " + messageService.get("macros.protein", locale) + ": *" + String.format("%.0f", proteinGrams) + "* " + messageService.get("metric.grams", locale) + "\n" +
                 "🥑 " + messageService.get("macros.fat", locale) + ": *" + String.format("%.0f", fatGrams) + "* " + messageService.get("metric.grams", locale) + "\n" +
                 "🍚 " + messageService.get("macros.carbs", locale) + ": *" + String.format("%.0f", carbGrams) + "* " + messageService.get("metric.grams", locale);
+        return SendMessage.builder()
+                .chatId(user.chatId())
+                .parseMode(ParseMode.MARKDOWN)
+                .text(message)
+                .replyMarkup(createBackKeyboardWithOptions(locale, "info.button.macros"))
+                .build();
     }
 
     private double calculateBMR(User user) {
@@ -168,6 +177,16 @@ public class CalculationService {
         }
     }
 
+    private String findInfoMessage(String text, Locale locale) {
+        for (CalculationOption option : CalculationOption.values()) {
+            String optionText = messageService.get("info.button." + option.name().toLowerCase(), locale);
+            if (optionText.equals(text)) {
+                return messageService.get("info." + option.name().toLowerCase(), locale);
+            }
+        }
+        return null;
+    }
+
     private SendMessage showEditParamsMenu(long chatId, Locale locale) {
         // Метод для показа меню редактирования параметров
         // (реализация зависит от вашей структуры)
@@ -184,7 +203,6 @@ public class CalculationService {
     private ReplyKeyboardMarkup createEditParamsKeyboard(Locale locale) {
         ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
         keyboard.setResizeKeyboard(true);
-
         List<KeyboardRow> rows = new ArrayList<>();
 
         KeyboardRow row1 = new KeyboardRow();
@@ -205,6 +223,23 @@ public class CalculationService {
         rows.add(row2);
         rows.add(row3);
         rows.add(row4);
+
+        keyboard.setKeyboard(rows);
+        return keyboard;
+    }
+
+    private ReplyKeyboardMarkup createBackKeyboardWithOptions(Locale locale, String... options) {
+        ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
+        keyboard.setResizeKeyboard(true);
+
+        List<KeyboardRow> rows = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+        row.add(messageService.get("menu.calculations", locale));
+        row.add(messageService.get("start", locale));
+        for (String option : options) {
+            row.add(messageService.get(option, locale));
+        }
+        rows.add(row);
 
         keyboard.setKeyboard(rows);
         return keyboard;
