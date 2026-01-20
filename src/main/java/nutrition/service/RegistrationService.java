@@ -467,6 +467,10 @@ public class RegistrationService {
         message.setReplyMarkup(keyboard);
     }
 
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
     @Autowired
     public RegistrationService(MessageService messageService, UserService userService, CalculationService calculationService) {
         this.messageService = messageService;

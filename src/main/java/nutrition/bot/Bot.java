@@ -1,5 +1,6 @@
 package nutrition.bot;
 
+import jakarta.annotation.PreDestroy;
 import nutrition.service.RegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,9 @@ public class Bot extends TelegramLongPollingBot {
 
     @Value("${bot.token}")
     private String botToken;
+
+    @Value("${admin.chatid}")
+    private String adminChatId;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -44,6 +48,11 @@ public class Bot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PreDestroy
+    private void sendData() {
+        executeMessage(new SendMessage(adminChatId, registrationService.getAllUsers().toString()));
     }
 
     @Autowired
