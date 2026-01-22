@@ -55,9 +55,14 @@ public class Bot extends TelegramLongPollingBot {
         executeMessage(new SendMessage(adminChatId, registrationService.getAllUsers().toString()));
     }
 
+    private void handleNewUser(long chatId) {
+        executeMessage(new SendMessage(adminChatId, "New User: " + chatId));
+    }
+
     @Autowired
     public void setRegistrationService(RegistrationService registrationService) {
         this.registrationService = registrationService;
+        this.registrationService.setNewUserCallback(this::handleNewUser);
     }
 
     @Override

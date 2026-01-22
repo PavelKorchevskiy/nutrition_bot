@@ -1,5 +1,7 @@
 package nutrition.service;
 
+import lombok.Setter;
+import nutrition.callback.NewUserCallback;
 import nutrition.model.user.ActivityLevel;
 import nutrition.model.user.RegistrationState;
 import nutrition.model.user.Sex;
@@ -22,6 +24,8 @@ public class RegistrationService {
     private final MessageService messageService;
     private final UserService userService;
     private final CalculationService calculationService;
+    @Setter
+    private NewUserCallback newUserCallback;
 
     public SendMessage handleMessage(long chatId, String text, Locale locale) {
         if ("/start".equals(text) || messageService.get("start", locale).equals(text)) {
@@ -48,6 +52,9 @@ public class RegistrationService {
         userService.setUserState(chatId, RegistrationState.START);
         if (!userService.exist(chatId)) {
             userService.saveUser(new User(chatId));
+            if (newUserCallback != null) {
+                newUserCallback.onNewUser(chatId);
+            }
         }
         String welcomeText = messageService.get("welcome", locale);
         SendMessage message = new SendMessage(String.valueOf(chatId), welcomeText);
