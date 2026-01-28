@@ -181,7 +181,7 @@ public class CalculationService {
     }
 
     private SendMessage getSodiumMessage(User user, Locale locale) {
-        String message = messageService.get("calculation.sodium.info", locale);
+        String message = messageService.get("info.sodium", locale);
         return SendMessage.builder()
                 .chatId(user.chatId())
                 .parseMode(ParseMode.MARKDOWN)
