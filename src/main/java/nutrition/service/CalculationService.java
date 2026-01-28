@@ -87,6 +87,9 @@ public class CalculationService {
                 case MACROS:
                     message = calculateMacronutrients(user, locale);
                     break;
+                case SODIUM:
+                    message = getSodiumMessage(user, locale);
+                    break;
                 default:
                     message = new SendMessage(String.valueOf(chatId), messageService.get("error.calculation_not_implemented", locale));
             }
@@ -177,6 +180,16 @@ public class CalculationService {
         }
     }
 
+    private SendMessage getSodiumMessage(User user, Locale locale) {
+        String message = messageService.get("calculation.sodium.info", locale);
+        return SendMessage.builder()
+                .chatId(user.chatId())
+                .parseMode(ParseMode.MARKDOWN)
+                .text(message)
+                .replyMarkup(createBackKeyboard(locale))
+                .build();
+    }
+
     private String findInfoMessage(String text, Locale locale) {
         for (CalculationOption option : CalculationOption.values()) {
             String optionText = messageService.get("info.button." + option.name().toLowerCase(), locale);
@@ -236,12 +249,18 @@ public class CalculationService {
         KeyboardRow row = new KeyboardRow();
         row.add(messageService.get("menu.calculations", locale));
         row.add(messageService.get("start", locale));
-        for (String option : options) {
-            row.add(messageService.get(option, locale));
+        if (options != null) {
+            for (String option : options) {
+                row.add(messageService.get(option, locale));
+            }
         }
         rows.add(row);
 
         keyboard.setKeyboard(rows);
         return keyboard;
+    }
+
+    private ReplyKeyboardMarkup createBackKeyboard(Locale locale) {
+        return createBackKeyboardWithOptions(locale, (String[]) null);
     }
 }

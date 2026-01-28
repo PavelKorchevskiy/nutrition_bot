@@ -4,5 +4,6 @@ public enum CalculationOption {
 
     WATER,
     CALORIES,
-    MACROS
+    MACROS,
+    SODIUM
 }
