@@ -90,6 +90,9 @@ public class CalculationService {
                 case SODIUM:
                     message = getSodiumMessage(user, locale);
                     break;
+                case IRON:
+                    message = getIronMessage(user, locale);
+                    break;
                 default:
                     message = new SendMessage(String.valueOf(chatId), messageService.get("error.calculation_not_implemented", locale));
             }
@@ -188,6 +191,39 @@ public class CalculationService {
                 .text(message)
                 .replyMarkup(createBackKeyboard(locale))
                 .build();
+    }
+
+    private SendMessage getIronMessage(User user, Locale locale) {
+        String message = "";
+        int ironIntake = getIronIntakeForUserImMilligrams(user);
+        if (ironIntake > 0) {
+            message += messageService.format("info.iron.personal-recommendation", locale, ironIntake);
+        }
+        message += messageService.format("info.iron", locale);
+        return SendMessage.builder()
+                .chatId(user.chatId())
+                .parseMode(ParseMode.MARKDOWN)
+                .text(message)
+                .replyMarkup(createBackKeyboard(locale))
+                .build();
+    }
+
+    private int getIronIntakeForUserImMilligrams(User user) {
+        if (user == null) {
+            return 0;
+        }
+        int age = user.age();
+        boolean isMale = user.sex().equals(Sex.MALE);
+        if (age >= 14 && age < 19) {
+            return isMale ? 11 : 15;
+        }
+        if (age >= 19 && age < 51) {
+            return isMale ? 8 : 18;
+        }
+        if (age >= 51) {
+            return 8;
+        }
+        return 0;
     }
 
     private String findInfoMessage(String text, Locale locale) {

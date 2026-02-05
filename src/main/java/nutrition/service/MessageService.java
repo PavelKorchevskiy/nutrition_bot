@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -57,5 +58,14 @@ public class MessageService {
     public String get(String key, Locale locale) {
         Properties props = messages.getOrDefault(locale, messages.get(Locale.getDefault()));
         return props.getProperty(key, "???" + key + "???");
+    }
+
+    public String format(String key, Locale locale, Object... args) {
+        String pattern = get(key, locale);
+        try {
+            return MessageFormat.format(pattern, args);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return pattern;
+        }
     }
 }
